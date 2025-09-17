@@ -2,12 +2,13 @@ services:
   - type: web
     name: n8n
     env: docker
-    dockerfilePath: ./Dockerfile
+    image:
+      url: docker.n8n.io/n8nio/n8n:latest
     region: singapore
-    plan: starter
+    plan: standard
     branch: main
     numInstances: 1
-    healthCheckPath: /
+    healthCheckPath: /healthz
 
     # Persistent storage for credentials, settings, etc.
     disk:
@@ -76,4 +77,4 @@ services:
 
 databases:
   - name: n8n-db
-    plan: basic-256mb
+    plan: basic-1gb
