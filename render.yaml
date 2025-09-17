@@ -2,13 +2,11 @@ services:
   - type: web
     name: n8n
     env: docker
-    image:
-      url: docker.n8n.io/n8nio/n8n:latest
-    plan: starter
     region: oregon
+    plan: starter
+    branch: main
     numInstances: 1
-    healthCheckPath: /healthz
-    autoDeploy: true
+    healthCheckPath: /
 
     # Persistent storage for credentials, settings, etc.
     disk:
