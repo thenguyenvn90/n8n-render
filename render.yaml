@@ -2,21 +2,12 @@ services:
   - type: web
     name: n8n
     env: docker
-    dockerfilePath: ./Dockerfile
-    region: singapore
-    plan: standard
-    branch: main
+    region: oregon # optional (defaults to oregon)
+    plan: standard # optional (defaults to starter)
+    branch: main # optional (defaults to master)
     numInstances: 1
-    healthCheckPath: /healthz
-
-    # Persistent storage for credentials, settings, etc.
-    disk:
-      name: n8n-data
-      mountPath: /home/node/.n8n
-      sizeGB: 5
-
+    healthCheckPath: /
     envVars:
-      # ---- Database wiring (managed Postgres below) ----
       - key: DB_TYPE
         value: postgresdb
       - key: DB_POSTGRESDB_HOST
@@ -41,42 +32,33 @@ services:
           property: password
       - key: DB_POSTGRESDB_SCHEMA
         value: public
-
-      # ---- Required secrets / basics ----
+      - key: WEBHOOK_URL
+        value: https://your-n8n-app.onrender.com/
       - key: N8N_ENCRYPTION_KEY
-        generateValue: true
+        value: YOUR_ENCRYPTION_KEY_HERE
+      - key: GENERIC_TIMEZONE
+        value: America/Sao_Paulo
+      - key: TZ
+        value: America/Sao_Paulo
       - key: N8N_LOG_LEVEL
         value: info
-      - key: TZ
-        value: Asia/Ho_Chi_Minh
-      - key: GENERIC_TIMEZONE
-        value: Asia/Ho_Chi_Minh
-      - key: N8N_SECURE_COOKIE
-        value: "true"
-      - key: N8N_PROTOCOL
-        value: https
-      - key: N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS
-        value: "true"
-
-      # ---- Optional basic auth for the UI ----
-      - key: N8N_BASIC_AUTH_ACTIVE
-        value: "true"
-      - key: N8N_BASIC_AUTH_USER
-        value: admin
-      - key: N8N_BASIC_AUTH_PASSWORD
-        generateValue: true
-
-      # ---- Set these AFTER first deploy & custom domain is attached ----
-      # - key: N8N_HOST
-      #   value: n8n.yourdomain.com
-      # - key: WEBHOOK_URL
-      #   value: https://n8n.yourdomain.com
-      # - key: N8N_EDITOR_BASE_URL
-      #   value: https://n8n.yourdomain.com
-      # - key: N8N_PUBLIC_API_BASE_URL
-      #   value: https://n8n.yourdomain.com
+      - key: EXECUTIONS_DATA_PRUNE
+        value: true
+      - key: EXECUTIONS_DATA_MAX_AGE
+        value: 168
+      - key: EXECUTIONS_DATA_SAVE_ON_ERROR
+        value: all
+      - key: EXECUTIONS_DATA_SAVE_ON_SUCCESS
+        value: none
+      - key: EXECUTIONS_DATA_SAVE_ON_PROGRESS
+        value: false
+      - key: EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS
+        value: false
+    disk:
+      name: n8n-disk
+      mountPath: /home/node/.n8n
+      sizeGB: 5
 
 databases:
   - name: n8n-db
     plan: basic-1gb
-    region: singapore
