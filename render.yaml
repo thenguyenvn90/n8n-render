@@ -1,0 +1,111 @@
+services:
+  - type: web
+    name: n8n
+    env: docker
+    image: docker.n8n.io/n8nio/n8n:latest   # or pin a version
+    region: oregon
+    plan: standard
+    branch: main
+    numInstances: 1
+
+    # Make n8n listen on Render's assigned port
+    startCommand: sh -c 'N8N_PORT=$PORT n8n start'
+
+    # n8n exposes this endpoint; works with/without basic auth
+    healthCheckPath: /healthz
+
+    envVars:
+      # ---- Database wiring ----
+      - key: DB_TYPE
+        value: postgresdb
+      - key: DB_POSTGRESDB_HOST
+        fromDatabase:
+          name: n8n-db
+          property: host
+      - key: DB_POSTGRESDB_DATABASE
+        fromDatabase:
+          name: n8n-db
+          property: database
+      - key: DB_POSTGRESDB_PORT
+        fromDatabase:
+          name: n8n-db
+          property: port
+      - key: DB_POSTGRESDB_USER
+        fromDatabase:
+          name: n8n-db
+          property: user
+      - key: DB_POSTGRESDB_PASSWORD
+        fromDatabase:
+          name: n8n-db
+          property: password
+      - key: DB_POSTGRESDB_SCHEMA
+        value: public
+
+      # ---- Runtime & security ----
+      - key: NODE_ENV
+        value: production
+      - key: N8N_PROTOCOL
+        value: https
+      - key: N8N_SECURE_COOKIE
+        value: "true"
+      - key: N8N_BLOCK_ENV_ACCESS_IN_NODE
+        value: "true"
+      - key: N8N_DIAGNOSTICS_ENABLED
+        value: "false"
+
+      # Basic auth for the whole instance (strong password!)
+      - key: N8N_BASIC_AUTH_ACTIVE
+        value: "true"
+      - key: N8N_BASIC_AUTH_USER
+        value: admin
+      - key: N8N_BASIC_AUTH_PASSWORD
+        value: bBLWg+CGGwOihUEuAtMdQw==
+
+      # 32-byte base64. Example: `openssl rand -base64 32`
+      - key: N8N_ENCRYPTION_KEY
+        value: 54AWE8xZhlHNqj0OcDJWLkXQ1fcoHeCaIej//dliirE=
+
+      # ---- URLs (set after first deploy to your real hostname, no trailing slash) ----
+      # - key: N8N_HOST
+      #   value: n8n-yourapp.onrender.com
+      # - key: WEBHOOK_URL
+      #   value: https://n8n-yourapp.onrender.com
+      # - key: N8N_EDITOR_BASE_URL
+      #   value: https://n8n-yourapp.onrender.com
+      # - key: N8N_PUBLIC_API_BASE_URL
+      #   value: https://n8n-yourapp.onrender.com
+
+      # ---- Logging / metrics (optional) ----
+      - key: N8N_LOG_LEVEL
+        value: info
+      - key: N8N_METRICS
+        value: "false"   # set "true" if you plan to scrape /metrics
+
+      # ---- Time zone ----
+      - key: GENERIC_TIMEZONE
+        value: America/Sao_Paulo
+      - key: TZ
+        value: America/Sao_Paulo
+
+      # ---- Execution data retention (your original values, kept) ----
+      - key: EXECUTIONS_DATA_PRUNE
+        value: "true"
+      - key: EXECUTIONS_DATA_MAX_AGE
+        value: "168"
+      - key: EXECUTIONS_DATA_SAVE_ON_ERROR
+        value: all
+      - key: EXECUTIONS_DATA_SAVE_ON_SUCCESS
+        value: none
+      - key: EXECUTIONS_DATA_SAVE_ON_PROGRESS
+        value: "false"
+      - key: EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS
+        value: "false"
+
+    disk:
+      name: n8n-disk
+      mountPath: /home/node/.n8n
+      sizeGB: 5
+
+databases:
+  - name: n8n-db
+    plan: basic-1gb
