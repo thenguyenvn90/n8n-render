@@ -2,11 +2,11 @@ services:
   - type: web
     name: n8n
     env: docker
-    image: docker.n8n.io/n8nio/n8n:latest
+    image:
+      url: docker.n8n.io/n8nio/n8n:latest
     plan: starter
     region: oregon
     numInstances: 1
-    port: 5678
     healthCheckPath: /healthz
     autoDeploy: true
 
