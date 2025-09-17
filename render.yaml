@@ -3,19 +3,21 @@ services:
     name: n8n
     env: docker
     image: docker.n8n.io/n8nio/n8n:latest
+    plan: starter
     region: oregon
-    plan: standard
-    branch: main
     numInstances: 1
-
-    # Make n8n listen on Render's assigned port
-    startCommand: sh -c 'N8N_PORT=$PORT n8n start'
-
-    # n8n exposes this endpoint; works with/without basic auth
+    port: 5678
     healthCheckPath: /healthz
+    autoDeploy: true
+
+    # Persistent storage for credentials, settings, etc.
+    disk:
+      name: n8n-data
+      mountPath: /home/node/.n8n
+      sizeGB: 5
 
     envVars:
-      # ---- Database wiring ----
+      # ---- Database wiring (managed Postgres below) ----
       - key: DB_TYPE
         value: postgresdb
       - key: DB_POSTGRESDB_HOST
@@ -41,70 +43,37 @@ services:
       - key: DB_POSTGRESDB_SCHEMA
         value: public
 
-      # ---- Runtime & security ----
-      - key: NODE_ENV
-        value: production
-      - key: N8N_PROTOCOL
-        value: https
+      # ---- Required secrets / basics ----
+      - key: N8N_ENCRYPTION_KEY
+        generateValue: true
+      - key: N8N_LOG_LEVEL
+        value: info
+      - key: TZ
+        value: Asia/Ho_Chi_Minh
+      - key: GENERIC_TIMEZONE
+        value: Asia/Ho_Chi_Minh
       - key: N8N_SECURE_COOKIE
         value: "true"
-      - key: N8N_BLOCK_ENV_ACCESS_IN_NODE
-        value: "true"
-      - key: N8N_DIAGNOSTICS_ENABLED
-        value: "false"
+      - key: N8N_PROTOCOL
+        value: https
 
-      # Basic auth for the whole instance (strong password!)
+      # ---- Optional basic auth for the UI ----
       - key: N8N_BASIC_AUTH_ACTIVE
         value: "true"
       - key: N8N_BASIC_AUTH_USER
         value: admin
       - key: N8N_BASIC_AUTH_PASSWORD
-        value: bBLWg+CGGwOihUEuAtMdQw==
+        generateValue: true
 
-      # 32-byte base64. Example: `openssl rand -base64 32`
-      - key: N8N_ENCRYPTION_KEY
-        value: 54AWE8xZhlHNqj0OcDJWLkXQ1fcoHeCaIej//dliirE=
-
-      # ---- URLs (set after first deploy to your real hostname, no trailing slash) ----
+      # ---- Set these AFTER first deploy & custom domain is attached ----
       # - key: N8N_HOST
-      #   value: n8n-yourapp.onrender.com
+      #   value: n8n.yourdomain.com
       # - key: WEBHOOK_URL
-      #   value: https://n8n-yourapp.onrender.com
+      #   value: https://n8n.yourdomain.com
       # - key: N8N_EDITOR_BASE_URL
-      #   value: https://n8n-yourapp.onrender.com
+      #   value: https://n8n.yourdomain.com
       # - key: N8N_PUBLIC_API_BASE_URL
-      #   value: https://n8n-yourapp.onrender.com
-
-      # ---- Logging / metrics (optional) ----
-      - key: N8N_LOG_LEVEL
-        value: info
-      - key: N8N_METRICS
-        value: "false"
-
-      # ---- Time zone ----
-      - key: GENERIC_TIMEZONE
-        value: America/Sao_Paulo
-      - key: TZ
-        value: America/Sao_Paulo
-
-      # ---- Execution data retention (your original values, kept) ----
-      - key: EXECUTIONS_DATA_PRUNE
-        value: "true"
-      - key: EXECUTIONS_DATA_MAX_AGE
-        value: "168"
-      - key: EXECUTIONS_DATA_SAVE_ON_ERROR
-        value: all
-      - key: EXECUTIONS_DATA_SAVE_ON_SUCCESS
-        value: none
-      - key: EXECUTIONS_DATA_SAVE_ON_PROGRESS
-        value: "false"
-      - key: EXECUTIONS_DATA_SAVE_MANUAL_EXECUTIONS
-        value: "false"
-
-    disk:
-      name: n8n-disk
-      mountPath: /home/node/.n8n
-      sizeGB: 5
+      #   value: https://n8n.yourdomain.com
 
 databases:
   - name: n8n-db
