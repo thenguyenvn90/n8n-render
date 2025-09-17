@@ -2,7 +2,7 @@ services:
   - type: web
     name: n8n
     env: docker
-    image: docker.n8n.io/n8nio/n8n:latest   # or pin a version
+    image: docker.n8n.io/n8nio/n8n:latest
     region: oregon
     plan: standard
     branch: main
@@ -79,7 +79,7 @@ services:
       - key: N8N_LOG_LEVEL
         value: info
       - key: N8N_METRICS
-        value: "false"   # set "true" if you plan to scrape /metrics
+        value: "false"
 
       # ---- Time zone ----
       - key: GENERIC_TIMEZONE
